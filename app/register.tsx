@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useTheme } from '@/hooks/useTheme';
-// Removed OTP verification flow
+import { storeOTPData } from '@/lib/otpUtils';
 import { supabase } from '@/lib/supabase';
 
 const RegisterScreen = () => {
@@ -61,30 +61,8 @@ const RegisterScreen = () => {
       }
 
       if (data.user) {
-        // Try to sign the user in immediately (works if email confirmation is not required)
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (!signInError && signInData.user) {
-          Alert.alert('Welcome!', 'Your account is ready.', [
-            { text: 'OK', onPress: () => router.replace('/(tabs)') },
-          ]);
-          return;
-        }
-
-        // Fallback to login screen if immediate sign-in is not allowed
-        Alert.alert(
-          'Account Created',
-          'You can now sign in to your account.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.push('/login'),
-            },
-          ]
-        );
+        await storeOTPData({ email, type: 'register', password });
+        router.push('/otp-verification' as any);
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
